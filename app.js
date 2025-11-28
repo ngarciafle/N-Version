@@ -1,8 +1,8 @@
-// Importamos las funciones necesarias de Firebase
+// Funciones necesarias de Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, push, onValue, onDisconnect, update, onChildAdded, onChildRemoved, get, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// --- PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE ---
+// ---CONFIGURACIÓN DE FIREBASE ---
 const firebaseConfig = {
     apiKey: "AIzaSyAr08Jub2w6oIkTfRpyiUL0CseYzVP6_p8",
     authDomain: "impostor-game-v1.firebaseapp.com",
@@ -12,7 +12,6 @@ const firebaseConfig = {
     messagingSenderId: "24684641990",
     appId: "1:24684641990:web:cec7d6ddc6b59c1fdda1c7"
 };
-// ----------------------------------------------
 
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);
@@ -29,23 +28,19 @@ btnCrear.addEventListener('click', () => {
     const nombre = nombreInput.value;
     if (!nombre) return alert("¡Ponte un nombre!");
 
-    // Generar ID aleatorio para la sala (ej: 4582)
     const salaId = Math.floor(1000 + Math.random() * 9000);
 
-    // Referencia a la base de datos: salas/4582
     const salaRef = ref(db, 'salas/' + salaId);
 
-    // Escribir en la base de datos (set)
     set(salaRef, {
         estado: "Esperando",
         jugadores: {
-            [nombre]: { // Usamos el nombre como clave por simplicidad ahora
+            [nombre]: {
                 puntos: 0,
                 esLider: true
             }
         }
     }).then(() => {
-        // Si se guarda bien, entramos a la sala
         entrarEnSala(salaId, nombre);
     }).catch((error) => {
         console.error("Error:", error);
@@ -53,12 +48,12 @@ btnCrear.addEventListener('click', () => {
     });
 });
 
-// FUNCION 2: UNIRSE A SALA
+// FUNCION 2: UNIRSE A SALA EXISTENTE (Usa la función entrarEnSala solo que valida antes la existencia de la sala y el nombre no repetido)
 const btnUnirse = document.getElementById('btnUnirse');
 const codigoInput = document.getElementById('codigoInput');
 
 btnUnirse.addEventListener('click', () => {
-    const salaId = codigoInput.value.trim(); // .trim() quita espacios accidentales
+    const salaId = codigoInput.value.trim();
     const nombre = nombreInput.value.trim();
 
     if (!nombre || !salaId) return alert("Pon nombre y código");
@@ -66,21 +61,18 @@ btnUnirse.addEventListener('click', () => {
     const salaRef = ref(db, 'salas/' + salaId);
     const jugadorRef = ref(db, 'salas/' + salaId + '/jugadores/' + nombre);
 
-    // 1. VALIDACIÓN DE SALA (¿Existe la casa?)
     get(salaRef).then((salaSnapshot) => {
         if (!salaSnapshot.exists()) {
             alert("❌ La sala " + salaId + " no existe. Pídele el código correcto a tu amigo.");
-            return; // ¡IMPORTANTE! Aquí cortamos la ejecución
+            return;
         }
 
-        // 2. VALIDACIÓN DE USUARIO (¿Está ocupada la silla?)
         get(jugadorRef).then((jugadorSnapshot) => {
             if (jugadorSnapshot.exists()) {
                 alert("⚠️ El nombre '" + nombre + "' ya está en uso en esta sala.");
                 return;
             }
 
-            // 3. SI TODO ESTÁ BIEN, ENTRAMOS
             set(jugadorRef, {
                 puntos: 0,
                 esLider: false
@@ -101,7 +93,6 @@ function entrarEnSala(salaId, miNombre) {
     document.getElementById('tituloSala').innerText = "Sala: " + salaId;
 
     const miJugadorRef = ref(db, `salas/${salaId}/jugadores/${miNombre}`);
-    // Autodestrucción al salir
     onDisconnect(miJugadorRef).remove();
 
     const jugadoresRef = ref(db, `salas/${salaId}/jugadores`);
@@ -115,10 +106,9 @@ function entrarEnSala(salaId, miNombre) {
 
         listaUI.innerHTML = "";
 
-        if (!datos) return; // Si no hay nadie
+        if (!datos) return;
 
         // 1. CONVERTIMOS A ARRAY Y ORDENAMOS ALFABÉTICAMENTE
-        // Esto evita peleas: todos verán la lista en el mismo orden
         const jugadoresArray = Object.keys(datos).sort();
 
         let hayLider = false;
@@ -132,7 +122,7 @@ function entrarEnSala(salaId, miNombre) {
 
             if (nombre === miNombre) {
                 li.style.fontWeight = 'bold';
-                li.style.color = '#4CAF50'; // Te pinto en verde para que te reconozcas
+                li.style.color = '#4CAF50';
             }
 
             listaUI.appendChild(li);
@@ -143,12 +133,9 @@ function entrarEnSala(salaId, miNombre) {
 
         // 3. LÓGICA DE TRONO VACÍO (HERENCIA)
         if (!hayLider && jugadoresArray.length > 0) {
-            // Si soy el primero de la lista ordenada, reclamo el trono
             if (jugadoresArray[0] === miNombre) {
                 console.log("El líder se fue. Reclamando trono...");
-                // Actualizo en DB
                 update(miJugadorRef, { esLider: true });
-                // TRUCO: Fuerzo visualmente que soy líder AHORA MISMO para evitar el lag
                 soyLider = true;
             }
         }
@@ -167,40 +154,33 @@ function entrarEnSala(salaId, miNombre) {
         const btnSalir = document.getElementById('btnSalir');
 
         //5. GESTIÓN DE SALIDA DE LA SALA
-        // Al pulsar SALIR manualmente
         btnSalir.onclick = () => {
-            // 1. Nos borramos a nosotros mismos
             remove(miJugadorRef).then(() => {
-                // 2. Comprobamos si queda alguien más
                 get(jugadoresRef).then((snapshot) => {
                     if (!snapshot.exists()) {
-                        // SI NO QUEDA NADIE (snapshot vacío), borramos la sala entera
                         const salaRef = ref(db, 'salas/' + salaId);
                         remove(salaRef);
                         console.log("Sala vacía eliminada.");
                     }
                 });
-                // 3. Reseteamos la UI (volvemos al login)
                 location.reload();
             });
         };
     });
 
-    // --- B. NOTIFICACIONES (Entradas y Salidas) ---
-    // Alguien nuevo entra (o yo mismo al cargar)
+    // --- B. NOTIFICACIONES DE LA SALA (Entradas y Salidas) (Usando la función mostrarNotificacion) ---
     onChildAdded(jugadoresRef, (snapshot) => {
-        // Solo notificamos si NO soy yo mismo (para no spamear al entrar)
         if (snapshot.key !== miNombre) {
             mostrarNotificacion(`👋 ${snapshot.key} se ha unido.`);
         }
     });
 
-    // Alguien se va
     onChildRemoved(jugadoresRef, (snapshot) => {
         mostrarNotificacion(`❌ ${snapshot.key} ha salido.`);
     });
 }
 
+// FUNCION AUXILIAR: MOSTRAR NOTIFICACIONES TOAST
 function mostrarNotificacion(mensaje) {
     const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
@@ -208,7 +188,6 @@ function mostrarNotificacion(mensaje) {
     toast.textContent = mensaje;
     container.appendChild(toast);
 
-    // Eliminar el elemento del DOM cuando termine la animación (3s)
     setTimeout(() => {
         toast.remove();
     }, 5500);
