@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El Impostor</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .oculto {
+      display: none;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px;
+      cursor: pointer;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    /* Estilo para las notificaciones flotantes (Toasts) */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 1000;
+    }
+
+    .toast {
+      background: #333;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      opacity: 0;
+      animation: fade-in-out 4s forwards;
+    }
+
+    @keyframes fade-in-out {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      10% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      90% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+      }
+    }
+
+    /* El botón de empezar, grande y llamativo */
+    #btnEmpezar {
+      background-color: #4CAF50;
+      /* Verde */
+      color: white;
+      font-size: 1.2rem;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 50px;
+      margin-top: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    #btnEmpezar:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>🕵️‍♂️ El Impostor</h1>
+
+  <div id="pantalla-login">
+    <input type="text" id="nombreInput" placeholder="Tu nombre">
+    <br><br>
+    <button id="btnCrear">Crear Sala Nueva</button>
+    <br>
+    <input type="text" id="codigoInput" placeholder="Código de sala">
+    <button id="btnUnirse">Unirse a Sala</button>
+  </div>
+
+  <div id="pantalla-sala" class="oculto">
+    <h2 id="tituloSala">Sala: ---</h2>
+    <h3>Jugadores:</h3>
+    <ul id="listaJugadores" style="list-style: none; padding: 0;"></ul>
+    
+    <button id="btnEmpezar" class="oculto">🚀 EMPEZAR PARTIDA</button>
+    <button id="btnSalir" style="background-color: #ff3d2f; color: white;">Salir de la Sala</button>
+    
+    <p id="mensajeEstado">Esperando jugadores...</p>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+
+</html>
