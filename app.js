@@ -177,7 +177,7 @@ function entrarEnSala(salaId, miNombre) {
         };
         //6. EMPEZAR PARTIDA
         //Falta por poner una manera de empezar la votacion
-        //
+        //Falta una manera de que cuando empieces todos entren en la partida    
         
         btnEmpezar.onclick = () => {
             const numeroAzar = Math.floor(Math.random() * listaPalabras.length); //Selecciona índice al azar
