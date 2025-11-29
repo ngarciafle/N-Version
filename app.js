@@ -1,7 +1,13 @@
 // Funciones necesarias de Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, push, onValue, onDisconnect, update, onChildAdded, onChildRemoved, get, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import listaPalabras from './palabras.json' assert { type: 'json' };
+let listaPalabras = [];
+
+fetch('./palabras.json')
+    .then(res => res.json())
+    .then(data => {
+        listaPalabras = data;
+    });
 
 // ---CONFIGURACIÓN DE FIREBASE ---
 const firebaseConfig = {
@@ -21,9 +27,9 @@ const db = getDatabase(app);
 // Variables del DOM (HTML)
 const pantallaLogin = document.getElementById('pantalla-login');
 const pantallaSala = document.getElementById('pantalla-sala');
+const pantallaJuego = document.getElementById('pantalla-juego');
 const btnCrear = document.getElementById('btnCrear');
 const nombreInput = document.getElementById('nombreInput');
-const pantallaJuego = document.getElementById('pantalla-juego');
 
 // FUNCION 1: CREAR SALA
 btnCrear.addEventListener('click', () => {
@@ -110,7 +116,6 @@ function entrarEnSala(salaId, miNombre) {
         listaUI.innerHTML = "";
 
         if (!datos) return;
-    });
 
         // 1. CONVERTIMOS A ARRAY Y ORDENAMOS ALFABÉTICAMENTE
         const jugadoresArray = Object.keys(datos).sort();
@@ -170,11 +175,12 @@ function entrarEnSala(salaId, miNombre) {
                 location.reload();
             });
         };
-
         //6. EMPEZAR PARTIDA
+        //Falta por poner una manera de empezar la votacion
+        //
         
         btnEmpezar.onclick = () => {
-            const numeroAzar = Math.floor(Math.random() * 97); //Hay 97 palabras en el JSON
+            const numeroAzar = Math.floor(Math.random() * listaPalabras.length); //Selecciona índice al azar
             const palabra = listaPalabras[numeroAzar].word; //Selecciona palabra al azar y pista
             const pista = listaPalabras[numeroAzar].hint;
             const numeroImpostores = Math.ceil(jugadoresArray.length / 4); // 1 impostor cada 4 jugadores
@@ -190,36 +196,38 @@ function entrarEnSala(salaId, miNombre) {
 
             pantallaSala.classList.add('oculto');
             pantallaJuego.classList.remove('oculto');
-
-            for (let i = 0; i<=numeroImpostores; i++) {
-                let numeroImpostor = Math.random() * jugadoresArray.length;
+            
+            //Seleccion aleatoria de impostores
+            while (impostores.length < numeroImpostores) {
+                let numeroImpostor = Math.floor(Math.random() * jugadoresArray.length);
                 if (!impostores.includes(numeroImpostor)) {
                     impostores.push(numeroImpostor);
-                } else {
-                    i--;
                 }
             }
+            //Asignacion de roles y muestra de palabra/pista
             jugadoresArray.forEach((nombre, index) => {
                 const jugadorRef = ref(db, `salas/${salaId}/jugadores/${nombre}`);
-                if (impostores.includes(index)) {
-                    update(jugadorRef, {
-                        esImpostor: true
-                    });
-                } else {
-                    update(jugadorRef, {
-                        esImpostor: false
-                    });
-                }
-                if (jugadorRef.esImpostor) {
-                    pistaUI.classList.remove('oculto');
-                    pistaUI.innerText = `Pista: ${pista}`;
-                } else {
-                    palabraUI.classList.remove('oculto');
-                    palabraUI.innerText = `Palabra: ${palabra}`;
+                const esImpostor = impostores.includes(index);
+                
+                update(jugadorRef, {
+                    esImpostor: esImpostor
+                });
+                
+                // Mostrar palabra/pista solo al jugador actual
+                if (nombre === miNombre) {
+                    if (esImpostor) {
+                        pistaUI.classList.remove('oculto');
+                        pistaUI.innerText = `Pista: ${pista}`;
+                    } else {
+                        palabraUI.classList.remove('oculto');
+                        palabraUI.innerText = `Palabra: ${palabra}`;
+                    }
                 }
             });
 
-    };
+        };
+    
+    });
     // --- B. NOTIFICACIONES DE LA SALA (Entradas y Salidas) (Usando la función mostrarNotificacion) ---
     onChildAdded(jugadoresRef, (snapshot) => {
         if (snapshot.key !== miNombre) {
