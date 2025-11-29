@@ -1,0 +1,153 @@
+html, body {
+  height: 100vh;
+  margin: 5px;
+}
+
+body {
+  font-family: "Roboto Slab", sans-serif;
+  gap: 1rem;
+  text-align: center;
+  padding: 0 20px 20px 20px;
+}
+    .cuerpo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        height: 60%;
+        margin-top: 20px;
+    }
+    header {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+
+    }
+
+    .oculto {
+      display: none;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 20px 0;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    /* Estilo para las notificaciones flotantes */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 1000;
+    }
+
+    .toast {
+      background: #333;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      opacity: 0;
+      animation: fade-in-out 4s forwards;
+    }
+
+    @keyframes fade-in-out {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      10% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      90% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+      }
+    }
+
+    #btnCrear {
+      margin: 40px 0 30px 0;
+    }
+
+    #btnEmpezar {
+      background-color: #4CAF50;
+      color: white;
+      font-size: 1.2rem;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 50px;
+      margin: 30px 0;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    #btnEmpezar:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+
+    /* Animacion fondo */
+  body {
+    background: linear-gradient(357deg, #dce3e1, #c5c8c7, #afb2b1);
+    background-size: 600% 600%;
+
+    -webkit-animation: AnimationName 34s ease infinite;
+    -moz-animation: AnimationName 34s ease infinite;
+    animation: AnimationName 34s ease infinite;
+  }
+
+  @-webkit-keyframes AnimationName {
+      0%{background-position:0% 53%}
+      50%{background-position:100% 48%}
+      100%{background-position:0% 53%}
+  }
+  @-moz-keyframes AnimationName {
+      0%{background-position:0% 53%}
+      50%{background-position:100% 48%}
+      100%{background-position:0% 53%}
+  }
+  @keyframes AnimationName {
+      0%{background-position:0% 53%}
+      50%{background-position:100% 48%}
+      100%{background-position:0% 53%}
+  }
+
+  nav {
+    background: linear-gradient(257deg, #afb2b1, #a0a5a3, #838785, #a3a7a5, #bbbfbd);
+    background-size: 1000% 1000%;
+
+    -webkit-animation: AnimationName 21s ease infinite;
+    -moz-animation: AnimationName 21s ease infinite;
+    animation: AnimationName 21s ease infinite;
+  }
+
+  @-webkit-keyframes AnimationName {
+      0%{background-position:0% 53%}
+      50%{background-position:100% 48%}
+      100%{background-position:0% 53%}
+  }
+  @-moz-keyframes AnimationName {
+      0%{background-position:0% 53%}
+      50%{background-position:100% 48%}
+      100%{background-position:0% 53%}
+  }
+  @keyframes AnimationName {
+      0%{background-position:0% 53%}
+      50%{background-position:100% 48%}
+      100%{background-position:0% 53%}
+  }
