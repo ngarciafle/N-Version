@@ -1,6 +1,13 @@
 // Funciones necesarias de Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, push, onValue, onDisconnect, update, onChildAdded, onChildRemoved, get, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+let listaPalabras = [];
+
+fetch('./palabras.json')
+    .then(res => res.json())
+    .then(data => {
+        listaPalabras = data;
+    });
 
 // ---CONFIGURACIÓN DE FIREBASE ---
 const firebaseConfig = {
@@ -20,6 +27,7 @@ const db = getDatabase(app);
 // Variables del DOM (HTML)
 const pantallaLogin = document.getElementById('pantalla-login');
 const pantallaSala = document.getElementById('pantalla-sala');
+const pantallaJuego = document.getElementById('pantalla-juego');
 const btnCrear = document.getElementById('btnCrear');
 const nombreInput = document.getElementById('nombreInput');
 
@@ -37,7 +45,8 @@ btnCrear.addEventListener('click', () => {
         jugadores: {
             [nombre]: {
                 puntos: 0,
-                esLider: true
+                esLider: true,
+                esImpostor: false
             }
         }
     }).then(() => {
@@ -166,8 +175,59 @@ function entrarEnSala(salaId, miNombre) {
                 location.reload();
             });
         };
-    });
+        //6. EMPEZAR PARTIDA
+        //Falta por poner una manera de empezar la votacion
+        //Falta una manera de que cuando empieces todos entren en la partida    
+        
+        btnEmpezar.onclick = () => {
+            const numeroAzar = Math.floor(Math.random() * listaPalabras.length); //Selecciona índice al azar
+            const palabra = listaPalabras[numeroAzar].word; //Selecciona palabra al azar y pista
+            const pista = listaPalabras[numeroAzar].hint;
+            const numeroImpostores = Math.ceil(jugadoresArray.length / 4); // 1 impostor cada 4 jugadores
+            const salaEstadoRef = ref(db, `salas/${salaId}`);
+            const pistaUI = document.getElementById('pista');
+            const palabraUI = document.getElementById('palabra');
+            update(salaEstadoRef, {
+                estado: "En Juego",
+                palabra: palabra,
+                pista: pista
+            });
+            let impostores = [];
 
+            pantallaSala.classList.add('oculto');
+            pantallaJuego.classList.remove('oculto');
+            
+            //Seleccion aleatoria de impostores
+            while (impostores.length < numeroImpostores) {
+                let numeroImpostor = Math.floor(Math.random() * jugadoresArray.length);
+                if (!impostores.includes(numeroImpostor)) {
+                    impostores.push(numeroImpostor);
+                }
+            }
+            //Asignacion de roles y muestra de palabra/pista
+            jugadoresArray.forEach((nombre, index) => {
+                const jugadorRef = ref(db, `salas/${salaId}/jugadores/${nombre}`);
+                const esImpostor = impostores.includes(index);
+                
+                update(jugadorRef, {
+                    esImpostor: esImpostor
+                });
+                
+                // Mostrar palabra/pista solo al jugador actual
+                if (nombre === miNombre) {
+                    if (esImpostor) {
+                        pistaUI.classList.remove('oculto');
+                        pistaUI.innerText = `Pista: ${pista}`;
+                    } else {
+                        palabraUI.classList.remove('oculto');
+                        palabraUI.innerText = `Palabra: ${palabra}`;
+                    }
+                }
+            });
+
+        };
+    
+    });
     // --- B. NOTIFICACIONES DE LA SALA (Entradas y Salidas) (Usando la función mostrarNotificacion) ---
     onChildAdded(jugadoresRef, (snapshot) => {
         if (snapshot.key !== miNombre) {
@@ -182,7 +242,7 @@ function entrarEnSala(salaId, miNombre) {
 
 // FUNCION AUXILIAR: MOSTRAR NOTIFICACIONES TOAST
 function mostrarNotificacion(mensaje) {
-    const container = document.getElementById('toastContainer');
+    const container = document.getElementById ('toastContainer');
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.textContent = mensaje;
