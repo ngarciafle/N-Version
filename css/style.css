@@ -1,13 +1,12 @@
 html, body {
   height: 100vh;
-  margin: 5px;
+  margin: 0;
 }
 
 body {
   font-family: "Roboto Slab", sans-serif;
-  gap: 1rem;
   text-align: center;
-  padding: 0 20px 20px 20px;
+  margin-top: 10px;
 }
     .cuerpo {
         display: flex;
@@ -109,31 +108,6 @@ body {
     -webkit-animation: AnimationName 34s ease infinite;
     -moz-animation: AnimationName 34s ease infinite;
     animation: AnimationName 34s ease infinite;
-  }
-
-  @-webkit-keyframes AnimationName {
-      0%{background-position:0% 53%}
-      50%{background-position:100% 48%}
-      100%{background-position:0% 53%}
-  }
-  @-moz-keyframes AnimationName {
-      0%{background-position:0% 53%}
-      50%{background-position:100% 48%}
-      100%{background-position:0% 53%}
-  }
-  @keyframes AnimationName {
-      0%{background-position:0% 53%}
-      50%{background-position:100% 48%}
-      100%{background-position:0% 53%}
-  }
-
-  nav {
-    background: linear-gradient(257deg, #afb2b1, #a0a5a3, #838785, #a3a7a5, #bbbfbd);
-    background-size: 1000% 1000%;
-
-    -webkit-animation: AnimationName 21s ease infinite;
-    -moz-animation: AnimationName 21s ease infinite;
-    animation: AnimationName 21s ease infinite;
   }
 
   @-webkit-keyframes AnimationName {
