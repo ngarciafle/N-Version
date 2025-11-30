@@ -177,8 +177,9 @@ function entrarEnSala(salaId, miNombre) {
         };
         //6. EMPEZAR PARTIDA
         //Falta por poner una manera de empezar la votacion
-        //Falta una manera de que cuando empieces todos entren en la partida    
-        
+        //Falta una manera de que cuando empieces todos entren en la partida (Parte C - Sincronización del juego)
+        //Aquí unicamente el líder iniciará la partida y asigna roles automáticamente (lo hace cambiando el estado en la db y el resto lo detecta con el listener de la parte C)
+
         btnEmpezar.onclick = () => {
             const numeroAzar = Math.floor(Math.random() * listaPalabras.length); //Selecciona índice al azar
             const palabra = listaPalabras[numeroAzar].word; //Selecciona palabra al azar y pista
@@ -196,7 +197,7 @@ function entrarEnSala(salaId, miNombre) {
 
             pantallaSala.classList.add('oculto');
             pantallaJuego.classList.remove('oculto');
-            
+
             //Seleccion aleatoria de impostores
             while (impostores.length < numeroImpostores) {
                 let numeroImpostor = Math.floor(Math.random() * jugadoresArray.length);
@@ -204,30 +205,21 @@ function entrarEnSala(salaId, miNombre) {
                     impostores.push(numeroImpostor);
                 }
             }
-            //Asignacion de roles y muestra de palabra/pista
+            //Asignacion de roles
             jugadoresArray.forEach((nombre, index) => {
                 const jugadorRef = ref(db, `salas/${salaId}/jugadores/${nombre}`);
                 const esImpostor = impostores.includes(index);
-                
+
                 update(jugadorRef, {
                     esImpostor: esImpostor
                 });
-                
-                // Mostrar palabra/pista solo al jugador actual
-                if (nombre === miNombre) {
-                    if (esImpostor) {
-                        pistaUI.classList.remove('oculto');
-                        pistaUI.innerText = `Pista: ${pista}`;
-                    } else {
-                        palabraUI.classList.remove('oculto');
-                        palabraUI.innerText = `Palabra: ${palabra}`;
-                    }
-                }
+
             });
 
         };
-    
+
     });
+
     // --- B. NOTIFICACIONES DE LA SALA (Entradas y Salidas) (Usando la función mostrarNotificacion) ---
     onChildAdded(jugadoresRef, (snapshot) => {
         if (snapshot.key !== miNombre) {
@@ -238,11 +230,44 @@ function entrarEnSala(salaId, miNombre) {
     onChildRemoved(jugadoresRef, (snapshot) => {
         mostrarNotificacion(`❌ ${snapshot.key} ha salido.`);
     });
+
+    // --- C. SINCRONIZACIÓN DEL JUEGO ---
+    const salaRef = ref(db, `salas/${salaId}`);
+
+    onValue(salaRef, (snapshot) => {
+        const datosSala = snapshot.val();
+        if (!datosSala) return; // Sala borrada
+
+        // Si el estado cambia a "En Juego", TODOS entramos
+        if (datosSala.estado === "En Juego") {
+            pantallaSala.classList.add('oculto');
+            pantallaJuego.classList.remove('oculto');
+
+            const miJugador = datosSala.jugadores[miNombre];
+
+            const palabraUI = document.getElementById('palabra');
+            const pistaUI = document.getElementById('pista');
+
+            palabraUI.classList.add('oculto');
+            pistaUI.classList.add('oculto');
+            // Mostrar palabra o pista según el rol del jugador obtenido de la base de datos
+            if (miJugador.esImpostor) {
+                pistaUI.innerText = `😈 Eres el Impostor\nPista: ${datosSala.pista}`;
+                pistaUI.classList.remove('oculto');
+                pistaUI.style.color = "red";
+            } else {
+                palabraUI.innerText = `La palabra es:\n${datosSala.palabra}`;
+                palabraUI.classList.remove('oculto');
+                palabraUI.style.color = "black";
+            }
+        }
+        // Si quisiéramos volver al lobby, podríamos poner un 'else if' aquí (que de hecho lo deberíamos hacer)
+    });
 }
 
 // FUNCION AUXILIAR: MOSTRAR NOTIFICACIONES TOAST
 function mostrarNotificacion(mensaje) {
-    const container = document.getElementById ('toastContainer');
+    const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.textContent = mensaje;
