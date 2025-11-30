@@ -33,6 +33,8 @@ const nombreInput = document.getElementById('nombreInput');
 const carta = document.getElementById('carta');
 const tituloCarta = carta.querySelector('h3');
 const palabraUI = document.getElementById('palabra');
+const btnVotar = document.getElementById('btnVotar');
+const pantallaVotacion = document.getElementById('pantalla-votacion');
 
 // FUNCION 1: CREAR SALA
 btnCrear.addEventListener('click', () => {
@@ -49,7 +51,8 @@ btnCrear.addEventListener('click', () => {
             [nombre]: {
                 puntos: 0,
                 esLider: true,
-                esImpostor: false
+                esImpostor: false,
+                vota: false
             }
         }
     }).then(() => {
@@ -190,7 +193,7 @@ function entrarEnSala(salaId, miNombre) {
             const numeroImpostores = Math.ceil(jugadoresArray.length / 4); // 1 impostor cada 4 jugadores
             const salaEstadoRef = ref(db, `salas/${salaId}`);
             const jugadoresVotadores = document.getElementById('jugadoresVotadores'); //Actualizar número de jugadores totales con 0 votados
-            jugadoresVotadores.innerText = `0/${jugadoresArray.length}`;
+            jugadoresVotadores.innerText = `${jugadoresArray.length}`;
             update(salaEstadoRef, {
                 estado: "En Juego",
                 palabra: palabra,
@@ -222,6 +225,24 @@ function entrarEnSala(salaId, miNombre) {
             tituloCarta.classList.toggle('atras');
             palabraUI.classList.toggle('atras');
         };
+
+        //7. BOTÓN VOTAR
+       /* btnVotar.onclick = () => {
+            //Si todo el mundo quiere votar,   **seria mejor implementar que el 50% quiera votar o 70% ??
+            const salaEstadoRef = ref(db, `salas/${salaId}`);
+            const jugadorRef = ref(db, `salas/${salaId}/jugadores/${miNombre}`);
+            update(jugadorRef, {
+                vota: true
+            });
+            if () {
+                update(salaEstadoRef, {
+                    estado: "Votando" // ** metemos como atributo quien el impostor??
+                });
+
+            } else {
+
+            }
+        }; */
 
     });
 
@@ -265,6 +286,12 @@ function entrarEnSala(salaId, miNombre) {
             }
         }
         // Si quisiéramos volver al lobby, podríamos poner un 'else if' aquí (que de hecho lo deberíamos hacer)
+        //Si el estado cambia a votando
+        if(datosSala.estado === "Votando") {
+                pantallaJuego.classList.add('oculto'); 
+                pantallaVotacion.classList.remove('oculto');
+            
+        }
     });
 }
 
