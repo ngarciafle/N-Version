@@ -217,15 +217,10 @@ function entrarEnSala(salaId, miNombre) {
 
         };
         // Mostrar palabra al hacer click en la carta
-        carta.onclick = async () => {
-            tituloCarta.classList.add('atras');
+        carta.onclick = () => {
+            tituloCarta.classList.toggle('atras');
             palabraUI.classList.toggle('atras');
             pistaUI.classList.toggle('atras');
-            await esperar(5000);
-            tituloCarta.classList.toggle('atras');
-            palabraUI.classList.add('atras');
-            pistaUI.classList.add('atras');
-
         };
 
     });
