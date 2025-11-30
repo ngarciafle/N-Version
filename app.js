@@ -30,6 +30,10 @@ const pantallaSala = document.getElementById('pantalla-sala');
 const pantallaJuego = document.getElementById('pantalla-juego');
 const btnCrear = document.getElementById('btnCrear');
 const nombreInput = document.getElementById('nombreInput');
+const carta = document.getElementById('carta');
+const tituloCarta = carta.querySelector('h3');
+const pistaUI = document.getElementById('pista');
+const palabraUI = document.getElementById('palabra');
 
 // FUNCION 1: CREAR SALA
 btnCrear.addEventListener('click', () => {
@@ -186,8 +190,6 @@ function entrarEnSala(salaId, miNombre) {
             const pista = listaPalabras[numeroAzar].hint;
             const numeroImpostores = Math.ceil(jugadoresArray.length / 4); // 1 impostor cada 4 jugadores
             const salaEstadoRef = ref(db, `salas/${salaId}`);
-            const pistaUI = document.getElementById('pista');
-            const palabraUI = document.getElementById('palabra');
             update(salaEstadoRef, {
                 estado: "En Juego",
                 palabra: palabra,
@@ -215,6 +217,17 @@ function entrarEnSala(salaId, miNombre) {
                 });
 
             });
+
+        };
+        // Mostrar palabra al hacer click en la carta
+        carta.onclick = async () => {
+            tituloCarta.classList.add('atras');
+            palabraUI.classList.toggle('atras');
+            pistaUI.classList.toggle('atras');
+            await esperar(5000);
+            tituloCarta.classList.toggle('atras');
+            palabraUI.classList.add('atras');
+            pistaUI.classList.add('atras');
 
         };
 
@@ -277,3 +290,6 @@ function mostrarNotificacion(mensaje) {
         toast.remove();
     }, 5500);
 }
+
+//FUNCION AUXILIAR: ESPERAR SEGUNDOS
+const esperar = (ms) => new Promise(resolve => setTimeout(resolve, ms));

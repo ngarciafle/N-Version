@@ -99,6 +99,19 @@ body {
       cursor: not-allowed;
     }
 
+    #btnVotar {
+      margin-top: 140px;
+    }
+
+    .atras {
+      display: none;
+    }
+    .carta {
+      cursor: pointer;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+      padding: 30px 15px 40px 15px;
+    }
 
     /* Animacion fondo */
   body {
