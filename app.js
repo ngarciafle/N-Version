@@ -32,8 +32,9 @@ const btnCrear = document.getElementById('btnCrear');
 const nombreInput = document.getElementById('nombreInput');
 const carta = document.getElementById('carta');
 const tituloCarta = carta.querySelector('h3');
-const pistaUI = document.getElementById('pista');
 const palabraUI = document.getElementById('palabra');
+const btnVotar = document.getElementById('btnVotar');
+const pantallaVotacion = document.getElementById('pantalla-votacion');
 
 // FUNCION 1: CREAR SALA
 btnCrear.addEventListener('click', () => {
@@ -50,7 +51,8 @@ btnCrear.addEventListener('click', () => {
             [nombre]: {
                 puntos: 0,
                 esLider: true,
-                esImpostor: false
+                esImpostor: false,
+                vota: false
             }
         }
     }).then(() => {
@@ -190,6 +192,8 @@ function entrarEnSala(salaId, miNombre) {
             const pista = listaPalabras[numeroAzar].hint;
             const numeroImpostores = Math.ceil(jugadoresArray.length / 4); // 1 impostor cada 4 jugadores
             const salaEstadoRef = ref(db, `salas/${salaId}`);
+            const jugadoresVotadores = document.getElementById('jugadoresVotadores'); //Actualizar número de jugadores totales con 0 votados
+            jugadoresVotadores.innerText = `${jugadoresArray.length}`;
             update(salaEstadoRef, {
                 estado: "En Juego",
                 palabra: palabra,
@@ -217,16 +221,28 @@ function entrarEnSala(salaId, miNombre) {
 
         };
         // Mostrar palabra al hacer click en la carta
-        carta.onclick = async () => {
-            tituloCarta.classList.add('atras');
-            palabraUI.classList.toggle('atras');
-            pistaUI.classList.toggle('atras');
-            await esperar(5000);
+        carta.onclick = () => {
             tituloCarta.classList.toggle('atras');
-            palabraUI.classList.add('atras');
-            pistaUI.classList.add('atras');
-
+            palabraUI.classList.toggle('atras');
         };
+
+        //7. BOTÓN VOTAR
+       /* btnVotar.onclick = () => {
+            //Si todo el mundo quiere votar,   **seria mejor implementar que el 50% quiera votar o 70% ??
+            const salaEstadoRef = ref(db, `salas/${salaId}`);
+            const jugadorRef = ref(db, `salas/${salaId}/jugadores/${miNombre}`);
+            update(jugadorRef, {
+                vota: true
+            });
+            if () {
+                update(salaEstadoRef, {
+                    estado: "Votando" // ** metemos como atributo quien el impostor??
+                });
+
+            } else {
+
+            }
+        }; */
 
     });
 
@@ -256,15 +272,13 @@ function entrarEnSala(salaId, miNombre) {
             const miJugador = datosSala.jugadores[miNombre];
 
             const palabraUI = document.getElementById('palabra');
-            const pistaUI = document.getElementById('pista');
 
             palabraUI.classList.add('oculto');
-            pistaUI.classList.add('oculto');
             // Mostrar palabra o pista según el rol del jugador obtenido de la base de datos
             if (miJugador.esImpostor) {
-                pistaUI.innerText = `😈 Eres el Impostor\nPista: ${datosSala.pista}`;
-                pistaUI.classList.remove('oculto');
-                pistaUI.style.color = "red";
+                palabraUI.innerText = `😈 Eres el Impostor\nPista: ${datosSala.pista}`;
+                palabraUI.classList.remove('oculto');
+                palabraUI.style.color = "red";
             } else {
                 palabraUI.innerText = `La palabra es:\n${datosSala.palabra}`;
                 palabraUI.classList.remove('oculto');
@@ -272,6 +286,12 @@ function entrarEnSala(salaId, miNombre) {
             }
         }
         // Si quisiéramos volver al lobby, podríamos poner un 'else if' aquí (que de hecho lo deberíamos hacer)
+        //Si el estado cambia a votando
+        if(datosSala.estado === "Votando") {
+                pantallaJuego.classList.add('oculto'); 
+                pantallaVotacion.classList.remove('oculto');
+            
+        }
     });
 }
 
