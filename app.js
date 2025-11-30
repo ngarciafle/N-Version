@@ -197,9 +197,6 @@ function entrarEnSala(salaId, miNombre) {
             });
             let impostores = [];
 
-            pantallaSala.classList.add('oculto');
-            pantallaJuego.classList.remove('oculto');
-
             //Seleccion aleatoria de impostores
             while (impostores.length < numeroImpostores) {
                 let numeroImpostor = Math.floor(Math.random() * jugadoresArray.length);
