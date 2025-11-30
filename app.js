@@ -189,6 +189,8 @@ function entrarEnSala(salaId, miNombre) {
             const pista = listaPalabras[numeroAzar].hint;
             const numeroImpostores = Math.ceil(jugadoresArray.length / 4); // 1 impostor cada 4 jugadores
             const salaEstadoRef = ref(db, `salas/${salaId}`);
+            const jugadoresVotadores = document.getElementById('jugadoresVotadores'); //Actualizar número de jugadores totales con 0 votados
+            jugadoresVotadores.innerText = `0/${jugadoresArray.length}`;
             update(salaEstadoRef, {
                 estado: "En Juego",
                 palabra: palabra,
