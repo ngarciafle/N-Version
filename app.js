@@ -32,7 +32,6 @@ const btnCrear = document.getElementById('btnCrear');
 const nombreInput = document.getElementById('nombreInput');
 const carta = document.getElementById('carta');
 const tituloCarta = carta.querySelector('h3');
-const pistaUI = document.getElementById('pista');
 const palabraUI = document.getElementById('palabra');
 
 // FUNCION 1: CREAR SALA
@@ -220,7 +219,6 @@ function entrarEnSala(salaId, miNombre) {
         carta.onclick = () => {
             tituloCarta.classList.toggle('atras');
             palabraUI.classList.toggle('atras');
-            pistaUI.classList.toggle('atras');
         };
 
     });
@@ -251,15 +249,13 @@ function entrarEnSala(salaId, miNombre) {
             const miJugador = datosSala.jugadores[miNombre];
 
             const palabraUI = document.getElementById('palabra');
-            const pistaUI = document.getElementById('pista');
 
             palabraUI.classList.add('oculto');
-            pistaUI.classList.add('oculto');
             // Mostrar palabra o pista según el rol del jugador obtenido de la base de datos
             if (miJugador.esImpostor) {
-                pistaUI.innerText = `😈 Eres el Impostor\nPista: ${datosSala.pista}`;
-                pistaUI.classList.remove('oculto');
-                pistaUI.style.color = "red";
+                palabraUI.innerText = `😈 Eres el Impostor\nPista: ${datosSala.pista}`;
+                palabraUI.classList.remove('oculto');
+                palabraUI.style.color = "red";
             } else {
                 palabraUI.innerText = `La palabra es:\n${datosSala.palabra}`;
                 palabraUI.classList.remove('oculto');
