@@ -227,22 +227,22 @@ function entrarEnSala(salaId, miNombre) {
         };
 
         //7. BOTÓN VOTAR
-       /* btnVotar.onclick = () => {
-            //Si todo el mundo quiere votar,   **seria mejor implementar que el 50% quiera votar o 70% ??
-            const salaEstadoRef = ref(db, `salas/${salaId}`);
-            const jugadorRef = ref(db, `salas/${salaId}/jugadores/${miNombre}`);
-            update(jugadorRef, {
-                vota: true
-            });
-            if () {
-                update(salaEstadoRef, {
-                    estado: "Votando" // ** metemos como atributo quien el impostor??
-                });
-
-            } else {
-
-            }
-        }; */
+        /* btnVotar.onclick = () => {
+             //Si todo el mundo quiere votar,   **seria mejor implementar que el 50% quiera votar o 70% ??
+             const salaEstadoRef = ref(db, `salas/${salaId}`);
+             const jugadorRef = ref(db, `salas/${salaId}/jugadores/${miNombre}`);
+             update(jugadorRef, {
+                 vota: true
+             });
+             if () {
+                 update(salaEstadoRef, {
+                     estado: "Votando" // ** metemos como atributo quien el impostor??
+                 });
+ 
+             } else {
+ 
+             }
+         }; */
 
     });
 
@@ -268,9 +268,9 @@ function entrarEnSala(salaId, miNombre) {
         const btnVotar = document.getElementById('btnVotar');
         const soyLider = (datosSala.jugadores[miNombre].esLider === true);
         const totalJugadores = Object.keys(datosSala.jugadores).length;
-        
+
         // Calculamos cuántos han votado (si existe el objeto, contamos las claves)
-        const votosActuales = datosSala.votos ? Object.keys(datosSala.votos).length : 0; 
+        const votosActuales = datosSala.votos ? Object.keys(datosSala.votos).length : 0;
 
         // --- ESTADO 1: EN JUEGO ---
         if (datosSala.estado === "En Juego") {
@@ -280,7 +280,7 @@ function entrarEnSala(salaId, miNombre) {
 
             const miJugador = datosSala.jugadores[miNombre];
             const palabraUI = document.getElementById('palabra');
-            
+
             // 1. Mostrar roles
             palabraUI.classList.add('oculto');
             if (miJugador.esImpostor) {
@@ -302,7 +302,7 @@ function entrarEnSala(salaId, miNombre) {
                 btnVotar.disabled = false;
                 btnVotar.style.opacity = "1";
                 btnVotar.style.cursor = "pointer";
-                
+
                 // Al hacer clic, se cambia el estado global
                 btnVotar.onclick = () => {
                     update(ref(db, `salas/${salaId}`), { estado: "Votando" });
@@ -316,32 +316,165 @@ function entrarEnSala(salaId, miNombre) {
                 btnVotar.title = "Espera a que el líder inicie la votación";
             }
         }
-        
+
         // --- ESTADO 2: VOTANDO ---
         else if (datosSala.estado === "Votando") {
             // ¿Ocultamos el juego y mostramos pantalla votación? Ahora mismo siempre que entramos en este estado ocultamos todo y mostramos votación, si lo quieres cambiar dímelo
-            
+
             pantallaJuego.classList.add('oculto');
             pantallaVotacion.classList.remove('oculto');
+            // Aseguramos que la pantalla de resultado esté oculta por si volvemos a jugar
+            document.getElementById('pantalla-resultado').classList.add('oculto');
 
-            pantallaVotacion.innerHTML = `<h2>¡Es hora de votar!</h2><h3>Votos: ${votosActuales}/${totalJugadores}</h3>`;
-            const listaVotacion = document.createElement('ul');
-            Object.keys(datosSala.jugadores).forEach(nombre => {
-                const botonVotar = document.createElement('button');
-                botonVotar.textContent = `Votar por ${nombre}`;
-                botonVotar.onclick = () => {
-                    const votoRef = ref(db, `salas/${salaId}/votos/${miNombre}`);
-                    set(votoRef, nombre).then(() => {
-                        mostrarNotificacion(`Has votado por ${nombre}`);
-                    });
+            // 1. ACTUALIZAR EL CONTADOR
+            const tituloVotos = document.getElementById('titulo-votos');
+            if (tituloVotos) {
+                tituloVotos.innerText = `Votos: ${votosActuales}/${totalJugadores}`;
+            }
+
+            // 2. CREAR LOS BOTONES
+            const listaVotacion = document.getElementById('lista-votacion-ul');
+
+            if (!listaVotacion || listaVotacion.children.length === 0) {
+                pantallaVotacion.innerHTML = `
+                    <h2>¡Es hora de votar!</h2>
+                    <h3 id="titulo-votos">Votos: ${votosActuales}/${totalJugadores}</h3>
+                    <ul id="lista-votacion-ul" style="list-style:none; padding:0;"></ul>
+                `;
+
+                const ul = document.getElementById('lista-votacion-ul');
+
+                Object.keys(datosSala.jugadores).forEach(nombre => {
+                    // FIX: No permitir votarse a uno mismo
+                    if (nombre !== miNombre) {
+                        const item = document.createElement('li');
+                        const botonVotar = document.createElement('button');
+                        botonVotar.textContent = `Votar por ${nombre}`;
+                        botonVotar.className = "boton";
+
+                        botonVotar.onclick = () => {
+                            // Desactivar botones tras votar para evitar spam
+                            const botones = ul.querySelectorAll('button');
+                            botones.forEach(btn => {
+                                btn.disabled = true;
+                                btn.style.opacity = "0.5";
+                            });
+
+                            const votoRef = ref(db, `salas/${salaId}/votos/${miNombre}`);
+                            set(votoRef, nombre).then(() => {
+                                mostrarNotificacion(`Has votado a ${nombre} 🗳️`);
+                            });
+                        };
+
+                        item.appendChild(botonVotar);
+                        ul.appendChild(item);
+                    }
+                });
+            }
+
+            // 3. LÓGICA DEL LÍDER (EL JUEZ)
+            // Si todos han votado, el líder calcula el resultado
+            if (soyLider && votosActuales === totalJugadores) {
+                setTimeout(() => {
+                    calcularResultado(datosSala.votos);
+                }, 1000);
+            }
+        }
+
+        // ... (bloque votando) ...
+
+        // --- ESTADO 3: RESULTADO FINAL ---
+        else if (datosSala.estado === "Resultado") {
+            pantallaVotacion.classList.add('oculto');
+            pantallaJuego.classList.add('oculto');
+            const pantallaRes = document.getElementById('pantalla-resultado');
+            pantallaRes.classList.remove('oculto');
+
+            const nombreExpulsado = document.getElementById('nombreExpulsado');
+            const rolExpulsado = document.getElementById('rolExpulsado');
+            const expulsado = datosSala.expulsado;
+
+            nombreExpulsado.innerText = expulsado;
+
+            // Mostrar si era impostor o no
+            // Buscamos en la lista de jugadores qué rol tenía el expulsado
+            const datosExpulsado = datosSala.jugadores[expulsado];
+            if (datosExpulsado && datosExpulsado.esImpostor) {
+                rolExpulsado.innerText = "😈 ¡Era el IMPOSTOR!";
+                rolExpulsado.style.color = "green"; // Ganaron los civiles
+            } else {
+                rolExpulsado.innerText = "😇 Era un inocente...";
+                rolExpulsado.style.color = "red"; // Ganó el impostor
+            }
+
+            // Lógica para volver a jugar (Solo líder)
+            const btnReiniciar = document.getElementById('btnReiniciar');
+            if (soyLider) {
+                btnReiniciar.classList.remove('oculto');
+                btnReiniciar.onclick = () => {
+                    // Reseteamos la sala para jugar otra vez
+                    // Borramos votos, roles y volvemos a "Esperando"
+                    // NOTA: Es mejor hacer un update selectivo o setear valores por defecto
+                    const updates = {};
+                    updates[`salas/${salaId}/estado`] = "Esperando";
+                    updates[`salas/${salaId}/votos`] = null; // Borrar votos
+                    updates[`salas/${salaId}/expulsado`] = null;
+
+                    // También habría que resetear los roles de jugadores, 
+                    // pero eso se hace al iniciar partida de nuevo.
+
+                    update(ref(db), updates);
                 };
-                const item = document.createElement('li');
-                item.appendChild(botonVotar);
-                listaVotacion.appendChild(item);
-            });
-            pantallaVotacion.appendChild(listaVotacion);
+            } else {
+                btnReiniciar.classList.add('oculto');
+            }
+        }
+
+        // --- ESTADO 4: VUELTA AL LOBBY (Reset) ---
+        else if (datosSala.estado === "Esperando") {
+            pantallaLogin.classList.add('oculto');
+
+            const pantallaRes = document.getElementById('pantalla-resultado');
+            if (pantallaRes) pantallaRes.classList.add('oculto');
+
+            pantallaSala.classList.remove('oculto');
+
+            const pistaUI = document.getElementById('pista');
+            if (pistaUI) pistaUI.classList.add('oculto');
+            palabraUI.classList.add('oculto');
         }
     });
+    
+    // FUNCION AUXILIAR: CALCULAR RESULTADO DE VOTACIÓN
+    function calcularResultado(votos) {
+        const recuento = {};
+
+        // Contamos votos
+        for (let votante in votos) {
+            const acusado = votos[votante];
+            recuento[acusado] = (recuento[acusado] || 0) + 1;
+        }
+
+        // Buscamos al más votado
+        let expulsado = "Nadie";
+        let maxVotos = -1;
+
+        for (let nombre in recuento) {
+            if (recuento[nombre] > maxVotos) {
+                maxVotos = recuento[nombre];
+                expulsado = nombre;
+            }
+        }
+
+        // OJO: Aquí podríamos añadir lógica de empates (si maxVotos se repite), 
+        // pero de momento expulsamos al primero que encontremos con el máximo.
+
+        // Actualizamos la base de datos para que TODOS vean el resultado
+        update(ref(db, `salas/${salaId}`), {
+            estado: "Resultado",
+            expulsado: expulsado
+        });
+    }
 }
 
 // FUNCION AUXILIAR: MOSTRAR NOTIFICACIONES TOAST

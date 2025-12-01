@@ -169,3 +169,16 @@ body {
     background-position: 0% 53%
   }
 }
+
+/* Estilos pantalla resultado votación */
+#nombreExpulsado {
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0px #000;
+  animation: zoomIn 0.5s ease-out;
+}
+
+@keyframes zoomIn {
+  0% { transform: scale(0); opacity: 0; }
+  80% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
