@@ -1,14 +1,14 @@
 /* Generales */
-html,
-body {
+html {
   height: 100vh;
   margin: 0;
 }
 
 body {
+  margin: 0;
   font-family: "Roboto Slab", sans-serif;
   text-align: center;
-  margin-top: 10px;
+  height: 100dvh;
 }
 
 .cuerpo {
