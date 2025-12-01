@@ -264,17 +264,25 @@ function entrarEnSala(salaId, miNombre) {
         const datosSala = snapshot.val();
         if (!datosSala) return; // Sala borrada
 
-        // Si el estado cambia a "En Juego", TODOS entramos
+        // Variables para la lógica de votación
+        const btnVotar = document.getElementById('btnVotar');
+        const soyLider = (datosSala.jugadores[miNombre].esLider === true);
+        const totalJugadores = Object.keys(datosSala.jugadores).length;
+        
+        // Calculamos cuántos han votado (si existe el objeto, contamos las claves)
+        const votosActuales = datosSala.votos ? Object.keys(datosSala.votos).length : 0; 
+
+        // --- ESTADO 1: EN JUEGO ---
         if (datosSala.estado === "En Juego") {
             pantallaSala.classList.add('oculto');
+            pantallaVotacion.classList.add('oculto');
             pantallaJuego.classList.remove('oculto');
 
             const miJugador = datosSala.jugadores[miNombre];
-
             const palabraUI = document.getElementById('palabra');
-
+            
+            // 1. Mostrar roles
             palabraUI.classList.add('oculto');
-            // Mostrar palabra o pista según el rol del jugador obtenido de la base de datos
             if (miJugador.esImpostor) {
                 palabraUI.innerText = `😈 Eres el Impostor\nPista: ${datosSala.pista}`;
                 palabraUI.classList.remove('oculto');
@@ -284,13 +292,54 @@ function entrarEnSala(salaId, miNombre) {
                 palabraUI.classList.remove('oculto');
                 palabraUI.style.color = "black";
             }
+
+            // 2. Configuración del Botón de Votar
+            btnVotar.classList.remove('oculto');
+
+            if (soyLider) {
+                // LÍDER: Ve botón de acción
+                btnVotar.innerHTML = "📢 Comenzar Votación";
+                btnVotar.disabled = false;
+                btnVotar.style.opacity = "1";
+                btnVotar.style.cursor = "pointer";
+                
+                // Al hacer clic, se cambia el estado global
+                btnVotar.onclick = () => {
+                    update(ref(db, `salas/${salaId}`), { estado: "Votando" });
+                };
+            } else {
+                // CIVILES: Ven el contador en espera
+                btnVotar.innerHTML = `Votos: 0/${totalJugadores}`;
+                btnVotar.disabled = true;
+                btnVotar.style.opacity = "0.5"; // Efecto visual de apagado
+                btnVotar.style.cursor = "not-allowed";
+                btnVotar.title = "Espera a que el líder inicie la votación";
+            }
         }
-        // Si quisiéramos volver al lobby, podríamos poner un 'else if' aquí (que de hecho lo deberíamos hacer)
-        //Si el estado cambia a votando
-        if(datosSala.estado === "Votando") {
-                pantallaJuego.classList.add('oculto'); 
-                pantallaVotacion.classList.remove('oculto');
+        
+        // --- ESTADO 2: VOTANDO ---
+        else if (datosSala.estado === "Votando") {
+            // ¿Ocultamos el juego y mostramos pantalla votación? Ahora mismo siempre que entramos en este estado ocultamos todo y mostramos votación, si lo quieres cambiar dímelo
             
+            pantallaJuego.classList.add('oculto');
+            pantallaVotacion.classList.remove('oculto');
+
+            pantallaVotacion.innerHTML = `<h2>¡Es hora de votar!</h2><h3>Votos: ${votosActuales}/${totalJugadores}</h3>`;
+            const listaVotacion = document.createElement('ul');
+            Object.keys(datosSala.jugadores).forEach(nombre => {
+                const botonVotar = document.createElement('button');
+                botonVotar.textContent = `Votar por ${nombre}`;
+                botonVotar.onclick = () => {
+                    const votoRef = ref(db, `salas/${salaId}/votos/${miNombre}`);
+                    set(votoRef, nombre).then(() => {
+                        mostrarNotificacion(`Has votado por ${nombre}`);
+                    });
+                };
+                const item = document.createElement('li');
+                item.appendChild(botonVotar);
+                listaVotacion.appendChild(item);
+            });
+            pantallaVotacion.appendChild(listaVotacion);
         }
     });
 }
