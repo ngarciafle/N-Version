@@ -182,3 +182,31 @@ body {
   80% { transform: scale(1.2); }
   100% { transform: scale(1); opacity: 1; }
 }
+
+#lista-votacion-ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.jugador-voto-item button {
+  width: 100%;
+  padding: 20px;
+  font-size: 1.1rem;
+  background-color: #2196F3;
+  border-radius: 12px;
+  transition: transform 0.2s;
+}
+
+.jugador-voto-item button:hover:not(:disabled) {
+  transform: scale(1.05);
+  background-color: #1976D2;
+}
+
+.jugador-voto-item button:disabled {
+  background-color: #B0BEC5;
+  transform: scale(1);
+}
