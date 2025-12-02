@@ -348,6 +348,7 @@ function entrarEnSala(salaId, miNombre) {
                     // FIX: No permitir votarse a uno mismo
                     if (nombre !== miNombre) {
                         const item = document.createElement('li');
+                        item.className = "jugador-voto-item";
                         const botonVotar = document.createElement('button');
                         botonVotar.textContent = `Votar por ${nombre}`;
                         botonVotar.className = "boton";

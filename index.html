@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>El Impostor</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,10 +34,10 @@
       <h2 id="tituloSala">Sala: ---</h2>
       <h3>Jugadores:</h3>
       <ul id="listaJugadores" style="list-style: none; padding: 0;"></ul>
-      
+
       <button id="btnEmpezar" class="oculto boton">🚀 EMPEZAR PARTIDA</button>
       <button id="btnSalir" class="boton" style="background-color: #ff3d2f; color: white;">Salir de la Sala</button>
-      
+
       <p id="mensajeEstado">Esperando jugadores...</p>
     </div>
 
@@ -45,23 +46,24 @@
         <h3 class="componenteCarta"> <span class="negrita">Pulsa</span> para ver👀</h3>
         <h4 id="palabra" class="componenteCarta oculto atras"></h4>
       </div>
-        <button id="btnVotar" class="boton">Vamos a votar <span id="jugadoresVotando">0</span>/<span id="jugadoresVotadores">4</span></button> <!--Hace falta integrar manera de poner cuantos han votado con js?-->
+      <button id="btnVotar" class="boton">Vamos a votar <span id="jugadoresVotando">0</span>/<span
+          id="jugadoresVotadores">4</span></button>
+      <!--Hace falta integrar manera de poner cuantos han votado con js?-->
     </div>
 
-    <div class="oculto" id="pantalla-votacion">
-      <div id="pantalla-resultado" class="oculto">
-        <h2 style="font-size: 2rem;">El expulsado es...</h2>
-        <h1 id="nombreExpulsado" style="font-size: 4rem; color: #ff3d2f; margin: 20px 0;">---</h1>
-        <p id="rolExpulsado" style="font-size: 1.5rem;">Era: ???</p>
-        
-        <button id="btnReiniciar" class="boton">Volver al Lobby</button>
-    </div>
+    <div class="oculto" id="pantalla-votacion"> </div>
 
+    <div id="pantalla-resultado" class="oculto">
+      <h2 style="font-size: 2rem;">El expulsado es...</h2>
+      <h1 id="nombreExpulsado" style="font-size: 4rem; color: #ff3d2f; margin: 20px 0;">---</h1>
+      <p id="rolExpulsado" style="font-size: 1.5rem;">Era: ???</p>
+
+      <button id="btnReiniciar" class="boton">Volver al Lobby</button>
     </div>
 
   </div>
 
-<div id="toastContainer" class="toast-container"></div>
+  <div id="toastContainer" class="toast-container"></div>
 
   <script type="module" src="app.js"></script>
 </body>
