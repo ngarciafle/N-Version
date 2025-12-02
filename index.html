@@ -22,10 +22,11 @@
       <br><br>
       <button id="btnCrear">Crear Sala Nueva</button>
       <br>
-      <input type="text" id="codigoInput" placeholder="Código de sala">
+      <input type="text" id="codigoInput" class="inputCodigo" placeholder="Código">
       <button id="btnUnirse" class="boton">Unirse a Sala</button>
     </div>
 
+    
     <div id="pantalla-nombre"> <!--Hacer una pantalla para agregar el nombre pero implementandola al metodo de login-->
 
     </div>
@@ -46,6 +47,11 @@
         <h3 class="componenteCarta"> <span class="negrita">Pulsa</span> para ver👀</h3>
         <h4 id="palabra" class="componenteCarta oculto atras"></h4>
       </div>
+    </div>
+    
+    <div class="oculto" id="pantalla-ronda"> <!--Es hora de poner palabras-->
+      <h2 class="tituloRonda"></h2>
+      <input type="text" id="palabraRonda">
       <button id="btnVotar" class="boton">Vamos a votar <span id="jugadoresVotando">0</span>/<span
           id="jugadoresVotadores">4</span></button>
       <!--Hace falta integrar manera de poner cuantos han votado con js?-->
