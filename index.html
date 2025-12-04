@@ -50,12 +50,17 @@
     </div>
     
     <div class="oculto" id="pantalla-ronda"> <!--Es hora de poner palabras-->
-      <h2 class="tituloRonda"></h2>
-      <input type="text" id="palabraRonda">
+      <h2 class="tituloRonda">---</h2>
+      <div class="atras" id="turnoPalabra">
+        <input type="text" id="palabraRonda">
+        <button id="btnPalabra" class="mandarPalabra">Listo</button>
+      </div>
       <button id="btnVotar" class="boton">Vamos a votar <span id="jugadoresVotando">0</span>/<span
-          id="jugadoresVotadores">4</span></button>
+          id="jugadoresVotadores">0</span></button>
       <!--Hace falta integrar manera de poner cuantos han votado con js?-->
     </div>
+
+    <div class="oculto" id="contenedorPalabras"></div>
 
     <div class="oculto" id="pantalla-votacion"> </div>
 
@@ -65,6 +70,14 @@
       <p id="rolExpulsado" style="font-size: 1.5rem;">Era: ???</p>
 
       <button id="btnReiniciar" class="boton">Volver al Lobby</button>
+    </div>
+
+    <div class="oculto" id="pantalla-fin">
+      <h2 style="font-size: 2rem;">¡La partida ha terminado!</h2>
+      <h3 id="mensajeFin" style="font-size: 1.5rem; margin: 20px 0;">---</>
+
+      <button id="btnVolverLobby" class="boton">Volver al Lobby</button>
+
     </div>
 
   </div>
