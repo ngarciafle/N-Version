@@ -35,6 +35,7 @@ const tituloCarta = carta.querySelector('h3');
 const palabraUI = document.getElementById('palabra');
 const btnVotar = document.getElementById('btnVotar');
 const pantallaVotacion = document.getElementById('pantalla-votacion');
+const pantallaRonda = document.getElementById('pantalla-ronda');
 
 // FUNCION 1: CREAR SALA
 btnCrear.addEventListener('click', () => {
@@ -186,7 +187,7 @@ function entrarEnSala(salaId, miNombre) {
         //Falta una manera de que cuando empieces todos entren en la partida (Parte C - Sincronización del juego)
         //Aquí unicamente el líder iniciará la partida y asigna roles automáticamente (lo hace cambiando el estado en la db y el resto lo detecta con el listener de la parte C)
 
-        btnEmpezar.onclick = () => {
+        btnEmpezar.onclick = async () => {
             const numeroAzar = Math.floor(Math.random() * listaPalabras.length); //Selecciona índice al azar
             const palabra = listaPalabras[numeroAzar].word; //Selecciona palabra al azar y pista
             const pista = listaPalabras[numeroAzar].hint;
@@ -217,6 +218,10 @@ function entrarEnSala(salaId, miNombre) {
                     esImpostor: esImpostor
                 });
 
+            });
+            await esperar(15000);
+            update(salaEstadoRef, {
+                estado: "RondaPalabras"
             });
 
         };
@@ -293,16 +298,21 @@ function entrarEnSala(salaId, miNombre) {
                 palabraUI.style.color = "black";
             }
 
+        }
+        // --- ESTADO 2: RONDA DE PALABRAS ---
+        else if (datosSala.estado === "RondaPalabras") { //Hay que integrar un chat ** o poner palabras y que se muestren al resto de la sala
+            pantallaRonda.classList.remove('oculto');
+            pantallaJuego.classList.add('oculto');
             // 2. Configuración del Botón de Votar
             btnVotar.classList.remove('oculto');
-
+    
             if (soyLider) {
                 // LÍDER: Ve botón de acción
                 btnVotar.innerHTML = "📢 Comenzar Votación";
                 btnVotar.disabled = false;
                 btnVotar.style.opacity = "1";
                 btnVotar.style.cursor = "pointer";
-
+    
                 // Al hacer clic, se cambia el estado global
                 btnVotar.onclick = () => {
                     update(ref(db, `salas/${salaId}`), { estado: "Votando" });
@@ -316,12 +326,11 @@ function entrarEnSala(salaId, miNombre) {
                 btnVotar.title = "Espera a que el líder inicie la votación";
             }
         }
-
-        // --- ESTADO 2: VOTANDO ---
+        // --- ESTADO 3: VOTANDO ---
         else if (datosSala.estado === "Votando") {
             // ¿Ocultamos el juego y mostramos pantalla votación? Ahora mismo siempre que entramos en este estado ocultamos todo y mostramos votación, si lo quieres cambiar dímelo
 
-            pantallaJuego.classList.add('oculto');
+            pantallaRonda.classList.add('oculto');
             pantallaVotacion.classList.remove('oculto');
             // Aseguramos que la pantalla de resultado esté oculta por si volvemos a jugar
             document.getElementById('pantalla-resultado').classList.add('oculto');
@@ -384,7 +393,7 @@ function entrarEnSala(salaId, miNombre) {
 
         // ... (bloque votando) ...
 
-        // --- ESTADO 3: RESULTADO FINAL ---
+        // --- ESTADO 4: RESULTADO FINAL ---
         else if (datosSala.estado === "Resultado") {
             pantallaVotacion.classList.add('oculto');
             pantallaJuego.classList.add('oculto');
@@ -431,7 +440,7 @@ function entrarEnSala(salaId, miNombre) {
             }
         }
 
-        // --- ESTADO 4: VUELTA AL LOBBY (Reset) ---
+        // --- ESTADO 5: VUELTA AL LOBBY (Reset) ---
         else if (datosSala.estado === "Esperando") {
             pantallaLogin.classList.add('oculto');
 
