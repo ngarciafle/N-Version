@@ -24,7 +24,12 @@ body {
   height: 60%;
   margin-top: 20px;
 }
-
+.ganador {
+  background-color: #78be7a;
+}
+.perdedor {
+  background-color: rgb(196, 66, 66);
+}
 header {
   display: flex;
   align-items: center;
@@ -41,7 +46,7 @@ header {
 .oculto {
   display: none;
 }
-.atras {
+.atras { /* Clase secundaria para hacer desaparecer */
   display: none;
 }
 /* Titulos */
