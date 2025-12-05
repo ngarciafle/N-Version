@@ -35,6 +35,10 @@ const tituloCarta = carta.querySelector('h3');
 const palabraUI = document.getElementById('palabra');
 const btnVotar = document.getElementById('btnVotar');
 const pantallaVotacion = document.getElementById('pantalla-votacion');
+const pantallaRonda = document.getElementById('pantalla-ronda');
+const btnPalabra = document.getElementById('btnPalabra');
+let listaPalabrasUsuarios = [];
+const contenedorPalabras = document.getElementById('contenedorPalabras');
 
 // FUNCION 1: CREAR SALA
 btnCrear.addEventListener('click', () => {
@@ -186,14 +190,12 @@ function entrarEnSala(salaId, miNombre) {
         //Falta una manera de que cuando empieces todos entren en la partida (Parte C - Sincronización del juego)
         //Aquí unicamente el líder iniciará la partida y asigna roles automáticamente (lo hace cambiando el estado en la db y el resto lo detecta con el listener de la parte C)
 
-        btnEmpezar.onclick = () => {
+        btnEmpezar.onclick = async () => {
             const numeroAzar = Math.floor(Math.random() * listaPalabras.length); //Selecciona índice al azar
             const palabra = listaPalabras[numeroAzar].word; //Selecciona palabra al azar y pista
             const pista = listaPalabras[numeroAzar].hint;
             const numeroImpostores = Math.ceil(jugadoresArray.length / 4); // 1 impostor cada 4 jugadores
             const salaEstadoRef = ref(db, `salas/${salaId}`);
-            const jugadoresVotadores = document.getElementById('jugadoresVotadores'); //Actualizar número de jugadores totales con 0 votados
-            jugadoresVotadores.innerText = `${jugadoresArray.length}`;
             update(salaEstadoRef, {
                 estado: "En Juego",
                 palabra: palabra,
@@ -218,7 +220,12 @@ function entrarEnSala(salaId, miNombre) {
                 });
 
             });
-
+            await esperar(15000);
+            const jugadorAzar = Math.floor(Math.random() * jugadoresArray.length); //empieza la ronda un jugador al azar
+            update(salaEstadoRef, {
+                estado: "RondaPalabras",
+                turno: jugadoresArray[jugadorAzar]
+            });
         };
         // Mostrar palabra al hacer click en la carta
         carta.onclick = () => {
@@ -244,6 +251,35 @@ function entrarEnSala(salaId, miNombre) {
              }
          }; */
 
+         //8. BOTÓN MANDAR PALABRA EN RONDA
+         btnPalabra.onclick = () => {
+            get(ref(db, `salas/${salaId}`)).then((snapshot) => { //Obtenemos datos sala
+                const datosSala = snapshot.val();
+                if (datosSala.turno === miNombre) {
+                    const palabraRonda = document.getElementById('palabraRonda').value.trim();
+                    if (!palabraRonda) {
+                        return mostrarNotificacion("¡Escribe una palabra!") 
+                    } else {
+                        if(palabraRonda.toLowerCase() == datosSala.palabra.toLowerCase()) {
+                            update(ref(db, `salas/${salaId}`), { estado: "Finalizada" });
+                        } else {
+                            push(ref(db, `salas/${salaId}/palabrasRonda`), {
+                                jugador: miNombre,
+                                palabra: palabraRonda
+                            });
+                            listaPalabrasUsuarios.push(miNombre + " ha dicho " + palabraRonda);
+                            update(ref(db, `salas/${salaId}`), {
+                                turno: jugadoresArray[(jugadoresArray.indexOf(miNombre) + 1) % jugadoresArray.length]
+                            })
+                        }
+                    }
+                } else {
+                    mostrarNotificacion("Culebron no mires el codigo.");
+                }
+            });
+
+
+         };
     });
 
     // --- B. NOTIFICACIONES DE LA SALA (Entradas y Salidas) (Usando la función mostrarNotificacion) ---
@@ -272,6 +308,8 @@ function entrarEnSala(salaId, miNombre) {
         // Calculamos cuántos han votado (si existe el objeto, contamos las claves)
         const votosActuales = datosSala.votos ? Object.keys(datosSala.votos).length : 0;
 
+        document.getElementById('jugadoresVotadores').innerText = `${Object.keys(datosSala.jugadores).length}`; //ajustar txt para total jugadores
+
         // --- ESTADO 1: EN JUEGO ---
         if (datosSala.estado === "En Juego") {
             pantallaSala.classList.add('oculto');
@@ -293,8 +331,26 @@ function entrarEnSala(salaId, miNombre) {
                 palabraUI.style.color = "black";
             }
 
+        }
+        // --- ESTADO 2: RONDA DE PALABRAS ---
+        else if (datosSala.estado === "RondaPalabras") { //Hay que integrar un chat ** o poner palabras y que se muestren al resto de la sala
+            pantallaRonda.classList.remove('oculto');
+            pantallaJuego.classList.add('oculto');
+            contenedorPalabras.classList.remove('oculto');
+
             // 2. Configuración del Botón de Votar
             btnVotar.classList.remove('oculto');
+
+            if (datosSala.turno === miNombre) {
+                // ES MI TURNO
+                document.getElementById('turnoPalabra').classList.remove('atras');
+                document.querySelector('.tituloRonda').innerHTML = `✍Es tu turno!`;
+
+            } else {
+                // NO ES MI TURNO
+                document.getElementById('turnoPalabra').classList.add('atras');
+                document.querySelector('.tituloRonda').innerHTML = `Es el turno de ${datosSala.turno}`;
+            }
 
             if (soyLider) {
                 // LÍDER: Ve botón de acción
@@ -302,7 +358,7 @@ function entrarEnSala(salaId, miNombre) {
                 btnVotar.disabled = false;
                 btnVotar.style.opacity = "1";
                 btnVotar.style.cursor = "pointer";
-
+    
                 // Al hacer clic, se cambia el estado global
                 btnVotar.onclick = () => {
                     update(ref(db, `salas/${salaId}`), { estado: "Votando" });
@@ -316,12 +372,11 @@ function entrarEnSala(salaId, miNombre) {
                 btnVotar.title = "Espera a que el líder inicie la votación";
             }
         }
-
-        // --- ESTADO 2: VOTANDO ---
+        // --- ESTADO 3: VOTANDO ---
         else if (datosSala.estado === "Votando") {
             // ¿Ocultamos el juego y mostramos pantalla votación? Ahora mismo siempre que entramos en este estado ocultamos todo y mostramos votación, si lo quieres cambiar dímelo
 
-            pantallaJuego.classList.add('oculto');
+            pantallaRonda.classList.add('oculto');
             pantallaVotacion.classList.remove('oculto');
             // Aseguramos que la pantalla de resultado esté oculta por si volvemos a jugar
             document.getElementById('pantalla-resultado').classList.add('oculto');
@@ -381,10 +436,10 @@ function entrarEnSala(salaId, miNombre) {
                 }, 1000);
             }
         }
-
+        
         // ... (bloque votando) ...
 
-        // --- ESTADO 3: RESULTADO FINAL ---
+        // --- ESTADO 4: RESULTADO FINAL ---
         else if (datosSala.estado === "Resultado") {
             pantallaVotacion.classList.add('oculto');
             pantallaJuego.classList.add('oculto');
@@ -431,7 +486,7 @@ function entrarEnSala(salaId, miNombre) {
             }
         }
 
-        // --- ESTADO 4: VUELTA AL LOBBY (Reset) ---
+        // --- ESTADO 5: VUELTA AL LOBBY (Reset) ---
         else if (datosSala.estado === "Esperando") {
             pantallaLogin.classList.add('oculto');
 
@@ -443,7 +498,30 @@ function entrarEnSala(salaId, miNombre) {
             const pistaUI = document.getElementById('pista');
             if (pistaUI) pistaUI.classList.add('oculto');
             palabraUI.classList.add('oculto');
+        } 
+        
+        // --- ESTADO 6: PARTIDA FINALIZADA (Reset) ---
+        // else if (datosSala.estado === "Finalizada") { // si has ganado o perdido diferentes mensajes
+        //     pantallaRonda.classList.add('oculto');
+        //     pantallaVotacion.classList.add('oculto');
+        //     if (miNombre.esImpostor) {
+
+        //     }
+        // }
+
+        // --- GESTION HISTORIAL PALABRAS --- **** ????? HAY QUE IMPLEMENTAR LA FUNCION AUXILIAR RELLENAR CONTENEDOR PALABRAS
+        const historialRef = ref(db, `salas/${salaId}/palabrasRonda`);
+    
+        onChildAdded(historialRef, (snapshot) => {        
+        if (contenedorPalabras) {
+            
+            // Color diferente si soy yo
+            if (dato.jugador === miNombre) {
+                p.style.color = "#4CAF50"; 
+            }            
+            contenedorPalabras.scrollTop = contenedorPalabras.scrollHeight; // Auto-scroll
         }
+    });
     });
     
     // FUNCION AUXILIAR: CALCULAR RESULTADO DE VOTACIÓN
@@ -493,3 +571,11 @@ function mostrarNotificacion(mensaje) {
 
 //FUNCION AUXILIAR: ESPERAR SEGUNDOS
 const esperar = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+//FUNCIONA AUXILIAR: CREAR CONTENEDOR DE PALABRAS  
+
+function actualizarContenedorPalabras() {
+    for (i in listaPalabrasUsuarios) {
+        contenedorPalabras.innerHTML += `<p>${listaPalabrasUsuarios[i].jugador} ha dicho ${listaPalabrasUsuarios[i].palabra}</p>`;
+    }
+}

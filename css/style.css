@@ -1,3 +1,8 @@
+/* Variables */
+:root {
+  --letraTitulo: 'Nabla', 'Roboto Slab', sans-serif;
+  --letraGeneral: 'Roboto Slab', sans-serif;
+}
 /* Generales */
 html {
   height: 100vh;
@@ -19,7 +24,12 @@ body {
   height: 60%;
   margin-top: 20px;
 }
-
+.ganador {
+  background-color: #78be7a;
+}
+.perdedor {
+  background-color: rgb(196, 66, 66);
+}
 header {
   display: flex;
   align-items: center;
@@ -36,9 +46,11 @@ header {
 .oculto {
   display: none;
 }
-.atras {
+.atras { /* Clase secundaria para hacer desaparecer */
   display: none;
 }
+/* Titulos */
+
 /* Botones e inputs */
 button {
   padding: 10px 20px;
@@ -49,7 +61,11 @@ button {
 input {
   padding: 10px;
   font-size: 16px;
+  &.inputCodigo {
+    width: 60px;
+  }
 }
+
 #btnCrear {
   margin: 40px 0 30px 0;
 }
